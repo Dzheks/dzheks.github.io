@@ -7,47 +7,41 @@
 
   <style>
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --accent: #22c55e;
+      --bg1: #0f172a;
+      --bg2: #020617;
     }
 
     body {
       min-height: 100vh;
-      background: radial-gradient(circle at top, #0f172a, #020617);
+      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
       color: #fff;
       padding: 20px;
+      overflow-x: hidden;
     }
 
     header {
       text-align: center;
       margin-bottom: 30px;
+      animation: fadeDown .6s ease;
+    }
+
+    header img {
+      width: 90px;
+      margin-bottom: 10px;
     }
 
     header h1 {
       font-size: 32px;
       letter-spacing: 1px;
-    }
-
-    .categories {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-    }
-
-    .category {
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .category.active {
-      background: #2563eb;
     }
 
     .catalog {
@@ -59,15 +53,18 @@
     }
 
     .card {
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.07);
       border-radius: 18px;
       overflow: hidden;
-      backdrop-filter: blur(10px);
-      transition: transform .2s ease;
+      backdrop-filter: blur(14px);
+      transition: transform .25s ease, box-shadow .25s ease;
+      animation: fadeUp .5s ease forwards;
+      opacity: 0;
     }
 
     .card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-8px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
     }
 
     .card img {
@@ -81,98 +78,99 @@
     }
 
     .card-body h3 {
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 6px;
     }
 
     .price {
       font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 10px;
+      opacity: 0.75;
+      margin-bottom: 12px;
     }
 
     .buy {
       width: 100%;
       border: none;
       border-radius: 12px;
-      padding: 10px;
-      background: #22c55e;
+      padding: 11px;
+      background: var(--accent);
       color: #020617;
       font-weight: 600;
       cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .buy:active {
+      transform: scale(.96);
+    }
+
+    /* === АНИМАЦИИ === */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>✨ NovaShop</h1>
+  <img src="images/logo.png" alt="NovaShop">
+  <h1>NovaShop</h1>
 </header>
 
-<div class="categories">
-  <div class="category active">Все</div>
-  <div class="category">PlayStation</div>
-  <div class="category">Steam</div>
-  <div class="category">Xbox</div>
-</div>
+<div class="catalog" id="catalog"></div>
 
-<div class="catalog">
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
 
-  <div class="card">
-    <img src="images/ps-essential.png" alt="">
-    <div class="card-body">
-      <h3>PS Plus Essential</h3>
-      <div class="price">499 ₽</div>
-      <button class="buy">Купить</button>
-    </div>
-  </div>
+  // Telegram theme color
+  if (tg.themeParams?.button_color) {
+    document.documentElement.style.setProperty("--accent", tg.themeParams.button_color);
+  }
 
-  <div class="card">
-    <img src="images/ps-extra.png" alt="">
-    <div class="card-body">
-      <h3>PS Plus Extra</h3>
-      <div class="price">799 ₽</div>
-      <button class="buy">Купить</button>
-    </div>
-  </div>
+  const products = [
+    { id: 1, name: "PS Plus Essential", price: 499, image: "images/ps-essential.png" },
+    { id: 2, name: "PS Plus Extra", price: 799, image: "images/ps-extra.png" },
+    { id: 3, name: "PS Plus Deluxe", price: 1099, image: "images/ps-deluxe.png" },
+    { id: 4, name: "Steam Wallet 1000 ₽", price: 1000, image: "images/steam-1000.png" },
+    { id: 5, name: "Steam Wallet 3000 ₽", price: 3000, image: "images/steam-3000.png" },
+    { id: 6, name: "Xbox Game Pass", price: 899, image: "images/xbox-pass.png" },
+  ];
 
-  <div class="card">
-    <img src="images/ps-deluxe.png" alt="">
-    <div class="card-body">
-      <h3>PS Plus Deluxe</h3>
-      <div class="price">1099 ₽</div>
-      <button class="buy">Купить</button>
-    </div>
-  </div>
+  const catalog = document.getElementById("catalog");
 
-  <div class="card">
-    <img src="images/steam-1000.png" alt="">
-    <div class="card-body">
-      <h3>Steam Wallet 1000 ₽</h3>
-      <div class="price">1000 ₽</div>
-      <button class="buy">Купить</button>
-    </div>
-  </div>
+  products.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.animationDelay = `${i * 0.06}s`;
 
-  <div class="card">
-    <img src="images/steam-3000.png" alt="">
-    <div class="card-body">
-      <h3>Steam Wallet 3000 ₽</h3>
-      <div class="price">3000 ₽</div>
-      <button class="buy">Купить</button>
-    </div>
-  </div>
+    card.innerHTML = `
+      <img src="${p.image}">
+      <div class="card-body">
+        <h3>${p.name}</h3>
+        <div class="price">${p.price} ₽</div>
+        <button class="buy">Купить</button>
+      </div>
+    `;
 
-  <div class="card">
-    <img src="images/xbox-pass.png" alt="">
-    <div class="card-body">
-      <h3>Xbox Game Pass</h3>
-      <div class="price">899 ₽</div>
-      <button class="buy">Купить</button>
-    </div>
-  </div>
+    card.querySelector(".buy").onclick = () => {
+      tg.HapticFeedback?.impactOccurred("medium");
+      tg.sendData(JSON.stringify({
+        action: "buy",
+        product: p
+      }));
+      tg.showAlert("Заявка отправлена ✅");
+    };
 
-</div>
+    catalog.appendChild(card);
+  });
+</script>
 
 </body>
 </html>
