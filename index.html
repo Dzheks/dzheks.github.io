@@ -16,8 +16,9 @@ body{
  min-height:100vh;
  background:radial-gradient(circle at top,var(--bg1),var(--bg2));
  color:#fff;
- overflow:hidden;
+ overflow-y:auto;
 }
+
 .screen{
  position:absolute;
  inset:0;
@@ -26,6 +27,7 @@ body{
 }
 .screen:not(.active){transform:translateX(100%)}
 .screen.active{transform:translateX(0)}
+
 header{text-align:center;margin-bottom:25px}
 header h1{font-size:32px}
 
@@ -36,8 +38,9 @@ header h1{font-size:32px}
  max-width:1000px;
  margin:auto;
 }
+
 .card{
- background:rgba(255,255,255,.07);
+ background:rgba(255,255,255,.08);
  border-radius:18px;
  overflow:hidden;
  backdrop-filter:blur(14px);
@@ -55,8 +58,8 @@ header h1{font-size:32px}
  background:var(--accent);
  font-weight:600;
  cursor:pointer;
+ color:#000;
 }
-.buy:active{transform:scale(.96)}
 
 .nav{
  position:fixed;
@@ -74,44 +77,18 @@ header h1{font-size:32px}
 .nav .active{color:var(--accent)}
 
 .cart-item{
- background:rgba(255,255,255,.07);
+ background:rgba(255,255,255,.08);
  border-radius:14px;
  padding:12px;
  margin-bottom:10px;
  display:flex;
  justify-content:space-between;
- align-items:center;
-}
-
-.hero{
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.7);
- display:flex;
- align-items:center;
- justify-content:center;
- z-index:10;
-}
-.hero-card{
- width:90%;
- max-width:360px;
- background:#020617;
- border-radius:20px;
- overflow:hidden;
- animation:zoom .3s ease;
-}
-@keyframes zoom{from{transform:scale(.9)}to{transform:scale(1)}}
-select{
- background:#020617;
- color:#fff;
- border-radius:8px;
- padding:6px;
 }
 </style>
 </head>
+
 <body>
 
-<!-- ===== ЭКРАНЫ ===== -->
 <div class="screen active" id="shop">
 <header><h1>NovaShop</h1></header>
 <div class="catalog" id="catalog"></div>
@@ -130,43 +107,34 @@ select{
 <div id="orders"></div>
 </div>
 
-<div class="screen" id="admin">
-<header><h1>Админ-панель</h1></header>
-<div id="adminOrders"></div>
-</div>
-
-<!-- ===== NAV ===== -->
-<div class="nav" id="nav">
+<div class="nav">
 <button class="active" data-s="shop">Магазин</button>
 <button data-s="cart">Корзина</button>
 <button data-s="profile">Профиль</button>
 </div>
 
 <script>
-const tg=window.Telegram.WebApp;
+const tg = window.Telegram?.WebApp || {
+ expand(){},
+ sendData(){},
+ showAlert:alert,
+ initDataUnsafe:{}
+};
+
 tg.expand();
-if(tg.themeParams?.button_color)
- document.documentElement.style.setProperty("--accent",tg.themeParams.button_color);
 
-/* === АДМИН === */
-const ADMIN_IDS=[123456789]; // ← ЗАМЕНИ НА СВОЙ TG ID
-const isAdmin=ADMIN_IDS.includes(tg.initDataUnsafe?.user?.id);
-
-/* === ДАННЫЕ === */
 const products=[
-{id:1,name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
-{id:2,name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
-{id:3,name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
-{id:4,name:"Steam 1000 ₽",price:1000,img:"images/steam-1000.png"},
-{id:5,name:"Steam 3000 ₽",price:3000,img:"images/steam-3000.png"},
-{id:6,name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
+ {name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
+ {name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
+ {name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
+ {name:"Steam 1000 ₽",price:1000,img:"images/steam-1000.png"},
+ {name:"Steam 3000 ₽",price:3000,img:"images/steam-3000.png"},
+ {name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
 ];
 
-let cart=JSON.parse(localStorage.getItem("cart")||"[]");
-let orders=JSON.parse(localStorage.getItem("orders")||"[]");
+let cart=[];
 let current="shop";
 
-/* === КАТАЛОГ === */
 const catalog=document.getElementById("catalog");
 products.forEach(p=>{
  const c=document.createElement("div");
@@ -174,161 +142,24 @@ products.forEach(p=>{
  c.innerHTML=`
  <img src="${p.img}">
  <div class="card-body">
- <h3>${p.name}</h3>
- <div>${p.price} ₽</div>
- <button class="buy">Купить</button>
+  <h3>${p.name}</h3>
+  <p>${p.price} ₽</p>
+  <button class="buy">Купить</button>
  </div>`;
- c.onclick=()=>hero(p);
- c.querySelector("button").onclick=e=>{
-  e.stopPropagation();
-  addToCart(p);
- };
+ c.querySelector("button").onclick=()=>{cart.push(p);alert("Добавлено");};
  catalog.appendChild(c);
 });
 
-/* === HERO === */
-function hero(p){
- const h=document.createElement("div");
- h.className="hero";
- h.innerHTML=`
- <div class="hero-card">
- <img src="${p.img}" style="width:100%">
- <div style="padding:14px">
- <h3>${p.name}</h3>
- <p>${p.price} ₽</p>
- <button class="buy">В корзину</button>
- </div></div>`;
- h.onclick=()=>h.remove();
- h.querySelector("button").onclick=e=>{
-  e.stopPropagation();
-  addToCart(p);
-  h.remove();
- };
- document.body.appendChild(h);
-}
-
-function addToCart(p){
- cart.push(p);
- localStorage.setItem("cart",JSON.stringify(cart));
- tg.HapticFeedback?.impactOccurred("medium");
-}
-
-/* === КОРЗИНА === */
-function renderCart(){
- const l=document.getElementById("cartList");
- l.innerHTML="";
- let sum=0;
- cart.forEach(p=>{
-  sum+=p.price;
-  l.innerHTML+=`<div class="cart-item"><span>${p.name}</span><b>${p.price} ₽</b></div>`;
- });
- document.getElementById("total").innerText="Итого: "+sum+" ₽";
-}
-
-/* === ОПЛАТА === */
-function pay(){
- if(!cart.length)return;
- const order={
-  id:Date.now(),
-  date:new Date().toLocaleString(),
-  items:cart,
-  total:cart.reduce((s,p)=>s+p.price,0),
-  status:"paid"
- };
- orders.push(order);
- localStorage.setItem("orders",JSON.stringify(orders));
- tg.sendData(JSON.stringify({action:"order_created",order}));
- cart=[];localStorage.setItem("cart","[]");
- renderCart();renderOrders();renderAdminOrders();
- tg.showAlert("Заказ принят ✅");
-}
-
-/* === ПРОФИЛЬ === */
-document.getElementById("user").innerText=
- tg.initDataUnsafe?.user?.username?"@"+tg.initDataUnsafe.user.username:"Гость";
-
-function renderOrders(){
- const o=document.getElementById("orders");
- o.innerHTML="";
- orders.slice().reverse().forEach(or=>{
-  o.innerHTML+=`
-  <div class="cart-item">
-   <div>
-    <b>#${or.id}</b><br>
-    <small>${or.date}</small>
-   </div>
-   <div style="text-align:right">
-    <div>${or.total} ₽</div>
-    <small>${label(or.status)}</small>
-   </div>
-  </div>`;
- });
-}
-
-function label(s){
- return {new:"🕒 Новый",paid:"💳 Оплачен",delivered:"✅ Доставлен",cancelled:"❌ Отменён"}[s];
-}
-
-/* === АДМИН === */
-if(isAdmin){
- document.getElementById("nav").innerHTML+=`<button data-s="admin">Админ</button>`;
-}
-
-function renderAdminOrders(){
- if(!isAdmin)return;
- const el=document.getElementById("adminOrders");
- el.innerHTML="";
- orders.slice().reverse().forEach(or=>{
-  el.innerHTML+=`
-  <div class="cart-item">
-   <div>
-    <b>#${or.id}</b><br>
-    <small>${or.total} ₽</small>
-   </div>
-   <select onchange="updateStatus(${or.id},this.value)">
-    <option value="new" ${or.status==="new"?"selected":""}>Новый</option>
-    <option value="paid" ${or.status==="paid"?"selected":""}>Оплачен</option>
-    <option value="delivered" ${or.status==="delivered"?"selected":""}>Доставлен</option>
-    <option value="cancelled" ${or.status==="cancelled"?"selected":""}>Отменён</option>
-   </select>
-  </div>`;
- });
-}
-
-function updateStatus(id,status){
- const o=orders.find(x=>x.id===id);
- if(!o)return;
- o.status=status;
- localStorage.setItem("orders",JSON.stringify(orders));
- renderOrders();renderAdminOrders();
-}
-
-/* === НАВИГАЦИЯ + SWIPE === */
 document.querySelectorAll(".nav button").forEach(b=>{
- b.onclick=()=>switchScreen(b.dataset.s,b);
-});
-
-function switchScreen(id,btn){
- document.getElementById(current).classList.remove("active");
- document.getElementById(id).classList.add("active");
- current=id;
- document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
- btn?.classList.add("active");
- if(id==="cart")renderCart();
- if(id==="profile")renderOrders();
- if(id==="admin")renderAdminOrders();
-}
-
-let sx=0;
-document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
-document.addEventListener("touchend",e=>{
- let dx=e.changedTouches[0].clientX-sx;
- if(Math.abs(dx)<80)return;
- const order=["shop","cart","profile"].concat(isAdmin?["admin"]:[]);
- let i=order.indexOf(current);
- if(dx<0&&i<order.length-1)switchScreen(order[i+1]);
- if(dx>0&&i>0)switchScreen(order[i-1]);
+ b.onclick=()=>{
+  document.getElementById(current).classList.remove("active");
+  document.getElementById(b.dataset.s).classList.add("active");
+  current=b.dataset.s;
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+ };
 });
 </script>
+
 </body>
 </html>
