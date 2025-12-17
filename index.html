@@ -6,242 +6,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:system-ui,-apple-system;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
 :root{
-  --accent:#22c55e;
+ --accent:#22c55e;
+ --bg1:#0f172a;
+ --bg2:#020617;
 }
 body{
-  min-height:100vh;
-  background:radial-gradient(circle at top,#0f172a,#020617);
-  color:#fff;
-  overflow:hidden;
+ min-height:100vh;
+ background:radial-gradient(circle at top,var(--bg1),var(--bg2));
+ color:#fff;
 }
-
-/* ===== ЭКРАНЫ ===== */
-.screen{
-  position:absolute;
-  inset:0;
-  padding:20px 20px 90px;
-  transform:translateX(100%);
-  transition:.35s cubic-bezier(.4,0,.2,1);
-}
-.screen.active{transform:translateX(0)}
-
-/* ===== HEADER ===== */
-header{
-  text-align:center;
-  margin-bottom:20px;
-}
-header h1{
-  font-size:30px;
-}
-
-/* ===== КАТАЛОГ ===== */
+header{text-align:center;margin:20px 0}
+header img{width:64px;margin-bottom:10px}
 .catalog{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:18px;
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+ gap:18px;
+ padding:0 16px 100px;
 }
 .card{
-  background:rgba(255,255,255,.08);
-  border-radius:18px;
-  overflow:hidden;
-  backdrop-filter:blur(14px);
+ background:rgba(255,255,255,.07);
+ border-radius:18px;
+ overflow:hidden;
+ backdrop-filter:blur(12px);
 }
-.card img{
-  width:100%;
-  height:140px;
-  object-fit:cover;
-}
-.card-body{
-  padding:14px;
-}
-.card-body h3{
-  font-size:15px;
-  margin-bottom:6px;
-}
-.price{
-  font-size:14px;
-  opacity:.85;
-  margin-bottom:10px;
-}
+.card img{width:100%;height:140px;object-fit:cover}
+.card-body{padding:12px}
 .buy{
-  width:100%;
-  padding:11px;
-  border:none;
-  border-radius:12px;
-  background:var(--accent);
-  color:#000;
-  font-weight:600;
+ width:100%;
+ margin-top:8px;
+ padding:10px;
+ border:none;
+ border-radius:12px;
+ background:var(--accent);
+ font-weight:600;
 }
-
-/* ===== КОРЗИНА ===== */
-.cart-item{
-  background:rgba(255,255,255,.08);
-  border-radius:14px;
-  padding:12px;
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-}
-
-/* ===== NAV ===== */
 .nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#020617;
-  display:flex;
-  justify-content:space-around;
-  padding:12px 0;
+ position:fixed;
+ bottom:0;
+ left:0;
+ right:0;
+ background:#020617;
+ display:flex;
+ justify-content:space-around;
+ padding:12px 0;
 }
 .nav button{
-  background:none;
-  border:none;
-  color:#94a3b8;
-  font-weight:600;
+ background:none;border:none;color:#94a3b8;font-weight:600;
 }
-.nav .active{
-  color:var(--accent);
-}
+.nav .active{color:var(--accent)}
 </style>
 </head>
 
 <body>
 
-<!-- ===== SHOP ===== -->
-<div class="screen active" id="shop">
-  <header><h1>NovaShop</h1></header>
-  <div class="catalog" id="catalog"></div>
-</div>
+<header>
+  <img src="images/logo.png">
+  <h1>NovaShop</h1>
+</header>
 
-<!-- ===== CART ===== -->
-<div class="screen" id="cart">
-  <header><h1>Корзина</h1></header>
-  <div id="cartList"></div>
-  <h3 id="total"></h3>
-  <button class="buy" onclick="pay()">Оплатить</button>
-</div>
+<div class="catalog" id="catalog"></div>
 
-<!-- ===== PROFILE ===== -->
-<div class="screen" id="profile">
-  <header><h1>Профиль</h1></header>
-  <p id="user"></p>
-</div>
-
-<!-- ===== NAV ===== -->
 <div class="nav">
-  <button class="active" data-s="shop">Магазин</button>
-  <button data-s="cart">Корзина</button>
-  <button data-s="profile">Профиль</button>
+  <button class="active">Магазин</button>
 </div>
 
 <script>
-/* ===== TELEGRAM ONLY ===== */
-if (!window.Telegram || !window.Telegram.WebApp) {
-  document.body.innerHTML = `
-    <div style="padding:30px;text-align:center">
-      <h2>Откройте магазин через Telegram</h2>
-      <p>NovaShop работает только как Telegram Mini App</p>
-    </div>`;
-  throw new Error("Not Telegram WebApp");
+/* === ПРОВЕРКА TELEGRAM === */
+const tg = window.Telegram?.WebApp;
+if (!tg) {
+  document.body.innerHTML =
+   "<h2 style='text-align:center;margin-top:40px'>❌ Откройте магазин через Telegram</h2>";
+  throw new Error("Not Telegram");
 }
-
-const tg = window.Telegram.WebApp;
-tg.ready();
 tg.expand();
 
-if (tg.themeParams?.button_color) {
-  document.documentElement.style.setProperty(
-    "--accent",
-    tg.themeParams.button_color
-  );
-}
-
-/* ===== USER ===== */
-document.getElementById("user").innerText =
-  tg.initDataUnsafe?.user?.username
-    ? "@" + tg.initDataUnsafe.user.username
-    : "Гость";
-
-/* ===== PRODUCTS ===== */
-const products = [
-  {name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
-  {name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
-  {name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
-  {name:"Steam Wallet 1000 ₽",price:1000,img:"images/steam-1000.png"},
-  {name:"Steam Wallet 3000 ₽",price:3000,img:"images/steam-3000.png"},
-  {name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
+/* === ТОВАРЫ === */
+const products=[
+ {name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
+ {name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
+ {name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
+ {name:"Steam 1000 ₽",price:1000,img:"images/steam-1000.png"},
+ {name:"Steam 3000 ₽",price:3000,img:"images/steam-3000.png"},
+ {name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
 ];
 
-/* ===== CART ===== */
-let cart = [];
-let current = "shop";
+const catalog=document.getElementById("catalog");
 
-/* ===== RENDER CATALOG ===== */
-const catalog = document.getElementById("catalog");
 products.forEach(p=>{
-  const c = document.createElement("div");
-  c.className = "card";
-  c.innerHTML = `
-    <img src="${p.img}">
-    <div class="card-body">
-      <h3>${p.name}</h3>
-      <div class="price">${p.price} ₽</div>
-      <button class="buy">Купить</button>
-    </div>`;
-  c.querySelector("button").onclick = ()=>{
-    cart.push(p);
-    tg.HapticFeedback?.impactOccurred("medium");
-  };
-  catalog.appendChild(c);
-});
-
-/* ===== CART ===== */
-function renderCart(){
-  const list = document.getElementById("cartList");
-  list.innerHTML = "";
-  let sum = 0;
-  cart.forEach(p=>{
-    sum += p.price;
-    list.innerHTML += `
-      <div class="cart-item">
-        <span>${p.name}</span>
-        <b>${p.price} ₽</b>
-      </div>`;
-  });
-  document.getElementById("total").innerText = "Итого: " + sum + " ₽";
-}
-
-/* ===== PAY ===== */
-function pay(){
-  if(!cart.length) return;
-  const order = {
-    items: cart,
-    total: cart.reduce((s,p)=>s+p.price,0)
-  };
-  tg.sendData(JSON.stringify(order));
-  tg.showAlert("Заказ отправлен ✅");
-  cart = [];
-  renderCart();
-}
-
-/* ===== NAV ===== */
-document.querySelectorAll(".nav button").forEach(b=>{
-  b.onclick = ()=>{
-    document.getElementById(current).classList.remove("active");
-    document.getElementById(b.dataset.s).classList.add("active");
-    current = b.dataset.s;
-    document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    if(current==="cart") renderCart();
-  };
+ const c=document.createElement("div");
+ c.className="card";
+ c.innerHTML=`
+  <img src="${p.img}">
+  <div class="card-body">
+   <h3>${p.name}</h3>
+   <div>${p.price} ₽</div>
+   <button class="buy">Купить</button>
+  </div>`;
+ c.querySelector("button").onclick=()=>{
+   tg.sendData(JSON.stringify(p));
+   tg.HapticFeedback.impactOccurred("medium");
+ };
+ catalog.appendChild(c);
 });
 </script>
 
