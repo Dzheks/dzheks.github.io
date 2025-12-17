@@ -6,158 +6,242 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui,-apple-system;
+}
 :root{
- --accent:#22c55e;
- --bg1:#0f172a;
- --bg2:#020617;
+  --accent:#22c55e;
 }
 body{
- min-height:100vh;
- background:radial-gradient(circle at top,var(--bg1),var(--bg2));
- color:#fff;
- overflow-y:auto;
+  min-height:100vh;
+  background:radial-gradient(circle at top,#0f172a,#020617);
+  color:#fff;
+  overflow:hidden;
 }
 
+/* ===== ЭКРАНЫ ===== */
 .screen{
- position:absolute;
- inset:0;
- padding:20px 20px 90px;
- transition:transform .35s cubic-bezier(.4,0,.2,1);
+  position:absolute;
+  inset:0;
+  padding:20px 20px 90px;
+  transform:translateX(100%);
+  transition:.35s cubic-bezier(.4,0,.2,1);
 }
-.screen:not(.active){transform:translateX(100%)}
 .screen.active{transform:translateX(0)}
 
-header{text-align:center;margin-bottom:25px}
-header h1{font-size:32px}
+/* ===== HEADER ===== */
+header{
+  text-align:center;
+  margin-bottom:20px;
+}
+header h1{
+  font-size:30px;
+}
 
+/* ===== КАТАЛОГ ===== */
 .catalog{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
- gap:20px;
- max-width:1000px;
- margin:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:18px;
 }
-
 .card{
- background:rgba(255,255,255,.08);
- border-radius:18px;
- overflow:hidden;
- backdrop-filter:blur(14px);
- transition:.25s;
+  background:rgba(255,255,255,.08);
+  border-radius:18px;
+  overflow:hidden;
+  backdrop-filter:blur(14px);
 }
-.card:hover{transform:translateY(-6px)}
-.card img{width:100%;height:140px;object-fit:cover}
-.card-body{padding:14px}
-
+.card img{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+}
+.card-body{
+  padding:14px;
+}
+.card-body h3{
+  font-size:15px;
+  margin-bottom:6px;
+}
+.price{
+  font-size:14px;
+  opacity:.85;
+  margin-bottom:10px;
+}
 .buy{
- width:100%;
- padding:11px;
- border:none;
- border-radius:12px;
- background:var(--accent);
- font-weight:600;
- cursor:pointer;
- color:#000;
+  width:100%;
+  padding:11px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:#000;
+  font-weight:600;
 }
 
+/* ===== КОРЗИНА ===== */
+.cart-item{
+  background:rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+}
+
+/* ===== NAV ===== */
 .nav{
- position:fixed;
- bottom:0;
- left:0;
- right:0;
- background:#020617;
- display:flex;
- justify-content:space-around;
- padding:12px 0;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#020617;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
 }
 .nav button{
- background:none;border:none;color:#94a3b8;font-weight:600;
+  background:none;
+  border:none;
+  color:#94a3b8;
+  font-weight:600;
 }
-.nav .active{color:var(--accent)}
-
-.cart-item{
- background:rgba(255,255,255,.08);
- border-radius:14px;
- padding:12px;
- margin-bottom:10px;
- display:flex;
- justify-content:space-between;
+.nav .active{
+  color:var(--accent);
 }
 </style>
 </head>
 
 <body>
 
+<!-- ===== SHOP ===== -->
 <div class="screen active" id="shop">
-<header><h1>NovaShop</h1></header>
-<div class="catalog" id="catalog"></div>
+  <header><h1>NovaShop</h1></header>
+  <div class="catalog" id="catalog"></div>
 </div>
 
+<!-- ===== CART ===== -->
 <div class="screen" id="cart">
-<header><h1>Корзина</h1></header>
-<div id="cartList"></div>
-<h3 id="total"></h3>
-<button class="buy" onclick="pay()">Оплатить</button>
+  <header><h1>Корзина</h1></header>
+  <div id="cartList"></div>
+  <h3 id="total"></h3>
+  <button class="buy" onclick="pay()">Оплатить</button>
 </div>
 
+<!-- ===== PROFILE ===== -->
 <div class="screen" id="profile">
-<header><h1>Профиль</h1></header>
-<p id="user"></p>
-<div id="orders"></div>
+  <header><h1>Профиль</h1></header>
+  <p id="user"></p>
 </div>
 
+<!-- ===== NAV ===== -->
 <div class="nav">
-<button class="active" data-s="shop">Магазин</button>
-<button data-s="cart">Корзина</button>
-<button data-s="profile">Профиль</button>
+  <button class="active" data-s="shop">Магазин</button>
+  <button data-s="cart">Корзина</button>
+  <button data-s="profile">Профиль</button>
 </div>
 
 <script>
-const tg = window.Telegram?.WebApp || {
- expand(){},
- sendData(){},
- showAlert:alert,
- initDataUnsafe:{}
-};
+/* ===== TELEGRAM ONLY ===== */
+if (!window.Telegram || !window.Telegram.WebApp) {
+  document.body.innerHTML = `
+    <div style="padding:30px;text-align:center">
+      <h2>Откройте магазин через Telegram</h2>
+      <p>NovaShop работает только как Telegram Mini App</p>
+    </div>`;
+  throw new Error("Not Telegram WebApp");
+}
 
+const tg = window.Telegram.WebApp;
+tg.ready();
 tg.expand();
 
-const products=[
- {name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
- {name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
- {name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
- {name:"Steam 1000 ₽",price:1000,img:"images/steam-1000.png"},
- {name:"Steam 3000 ₽",price:3000,img:"images/steam-3000.png"},
- {name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
+if (tg.themeParams?.button_color) {
+  document.documentElement.style.setProperty(
+    "--accent",
+    tg.themeParams.button_color
+  );
+}
+
+/* ===== USER ===== */
+document.getElementById("user").innerText =
+  tg.initDataUnsafe?.user?.username
+    ? "@" + tg.initDataUnsafe.user.username
+    : "Гость";
+
+/* ===== PRODUCTS ===== */
+const products = [
+  {name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
+  {name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
+  {name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
+  {name:"Steam Wallet 1000 ₽",price:1000,img:"images/steam-1000.png"},
+  {name:"Steam Wallet 3000 ₽",price:3000,img:"images/steam-3000.png"},
+  {name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
 ];
 
-let cart=[];
-let current="shop";
+/* ===== CART ===== */
+let cart = [];
+let current = "shop";
 
-const catalog=document.getElementById("catalog");
+/* ===== RENDER CATALOG ===== */
+const catalog = document.getElementById("catalog");
 products.forEach(p=>{
- const c=document.createElement("div");
- c.className="card";
- c.innerHTML=`
- <img src="${p.img}">
- <div class="card-body">
-  <h3>${p.name}</h3>
-  <p>${p.price} ₽</p>
-  <button class="buy">Купить</button>
- </div>`;
- c.querySelector("button").onclick=()=>{cart.push(p);alert("Добавлено");};
- catalog.appendChild(c);
+  const c = document.createElement("div");
+  c.className = "card";
+  c.innerHTML = `
+    <img src="${p.img}">
+    <div class="card-body">
+      <h3>${p.name}</h3>
+      <div class="price">${p.price} ₽</div>
+      <button class="buy">Купить</button>
+    </div>`;
+  c.querySelector("button").onclick = ()=>{
+    cart.push(p);
+    tg.HapticFeedback?.impactOccurred("medium");
+  };
+  catalog.appendChild(c);
 });
 
+/* ===== CART ===== */
+function renderCart(){
+  const list = document.getElementById("cartList");
+  list.innerHTML = "";
+  let sum = 0;
+  cart.forEach(p=>{
+    sum += p.price;
+    list.innerHTML += `
+      <div class="cart-item">
+        <span>${p.name}</span>
+        <b>${p.price} ₽</b>
+      </div>`;
+  });
+  document.getElementById("total").innerText = "Итого: " + sum + " ₽";
+}
+
+/* ===== PAY ===== */
+function pay(){
+  if(!cart.length) return;
+  const order = {
+    items: cart,
+    total: cart.reduce((s,p)=>s+p.price,0)
+  };
+  tg.sendData(JSON.stringify(order));
+  tg.showAlert("Заказ отправлен ✅");
+  cart = [];
+  renderCart();
+}
+
+/* ===== NAV ===== */
 document.querySelectorAll(".nav button").forEach(b=>{
- b.onclick=()=>{
-  document.getElementById(current).classList.remove("active");
-  document.getElementById(b.dataset.s).classList.add("active");
-  current=b.dataset.s;
-  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
- };
+  b.onclick = ()=>{
+    document.getElementById(current).classList.remove("active");
+    document.getElementById(b.dataset.s).classList.add("active");
+    current = b.dataset.s;
+    document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    if(current==="cart") renderCart();
+  };
 });
 </script>
 
