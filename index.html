@@ -1,144 +1,89 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>NovaShop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     :root {
-      --bg: #0b0c10;
-      --glass: rgba(255,255,255,0.08);
-      --border: rgba(255,255,255,0.15);
-      --neon: #4da3ff;
+      --bg: #0b0e14;
+      --card: rgba(255,255,255,0.08);
       --text: #ffffff;
+      --muted: #9aa0a6;
+      --accent: #3b82f6;
+      --radius: 18px;
+      --blur: blur(14px);
     }
 
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
       font-family: Inter, system-ui, sans-serif;
-    }
-
-    body {
-      background: radial-gradient(circle at top, #101522, #07080c);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       color: var(--text);
     }
 
-    /* === GLASS CARD === */
-    .app {
-      width: 100%;
-      max-width: 420px;
-      padding: 32px 24px;
-      border-radius: 24px;
-      background: var(--glass);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      box-shadow: 0 0 40px rgba(77,163,255,0.15);
-      text-align: center;
-      animation: fadeIn 1s ease forwards;
+    body {
+      background: radial-gradient(circle at top, #111827, #000);
+      min-height: 100vh;
+      padding-bottom: 90px;
     }
 
-    /* === LOGO === */
+    header {
+      text-align: center;
+      padding: 24px 16px 10px;
+    }
+
     .logo {
-      font-size: 2.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 28px;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 24px;
-      opacity: 0;
-      animation: logoIn 1.2s ease forwards, neonBreath 3s ease-in-out infinite;
-      animation-delay: 0.3s;
-      text-shadow:
-        0 0 10px var(--neon),
-        0 0 30px rgba(77,163,255,0.6);
+      animation: fadeIn 1s ease;
     }
 
     .logo span {
-      margin-right: 6px;
+      color: var(--accent);
+      text-shadow: 0 0 20px var(--accent);
+      animation: neon 2.5s infinite alternate;
     }
 
-    /* === CATEGORIES === */
+    @keyframes neon {
+      from { text-shadow: 0 0 8px var(--accent); }
+      to { text-shadow: 0 0 22px var(--accent); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* КАТЕГОРИИ */
     .categories {
       display: flex;
       gap: 10px;
       justify-content: center;
+      margin: 16px;
       flex-wrap: wrap;
     }
 
-    .cat {
+    .category {
       padding: 8px 16px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid var(--border);
-      color: #ddd;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.25s ease;
+      background: var(--card);
+      backdrop-filter: var(--blur);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 14px;
     }
 
-    .cat.active,
-    .cat:hover {
-      background: var(--neon);
-      color: #000;
-      box-shadow: 0 0 15px rgba(77,163,255,0.6);
+    /* КАТАЛОГ */
+    .catalog {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      padding: 0 16px;
     }
 
-    /* === ANIMATIONS === */
-    @keyframes logoIn {
-      from {
-        transform: translateY(-20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes neonBreath {
-      0%, 100% {
-        text-shadow:
-          0 0 10px var(--neon),
-          0 0 30px rgba(77,163,255,0.6);
-      }
-      50% {
-        text-shadow:
-          0 0 18px var(--neon),
-          0 0 45px rgba(77,163,255,0.9);
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* === MOBILE === */
-    @media (max-width: 420px) {
-      .logo {
-        font-size: 2rem;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="app">
-    <div class="logo">
-      <span>✨</span>NovaShop
-    </div>
-
-    <div class="categories">
-      <div class="cat active">Все</div>
-      <div class="cat">PlayStation</div>
-      <div class="cat">Steam</div>
-      <div class="cat">Xbox</div>
-    </div>
-  </div>
-</body>
-</html>
+    .card {
