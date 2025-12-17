@@ -1,176 +1,334 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>NovaShop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>NovaShop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
+:root{
+ --accent:#22c55e;
+ --bg1:#0f172a;
+ --bg2:#020617;
+}
+body{
+ min-height:100vh;
+ background:radial-gradient(circle at top,var(--bg1),var(--bg2));
+ color:#fff;
+ overflow:hidden;
+}
+.screen{
+ position:absolute;
+ inset:0;
+ padding:20px 20px 90px;
+ transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.screen:not(.active){transform:translateX(100%)}
+.screen.active{transform:translateX(0)}
+header{text-align:center;margin-bottom:25px}
+header h1{font-size:32px}
 
-    :root {
-      --accent: #22c55e;
-      --bg1: #0f172a;
-      --bg2: #020617;
-    }
+.catalog{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+ gap:20px;
+ max-width:1000px;
+ margin:auto;
+}
+.card{
+ background:rgba(255,255,255,.07);
+ border-radius:18px;
+ overflow:hidden;
+ backdrop-filter:blur(14px);
+ transition:.25s;
+}
+.card:hover{transform:translateY(-6px)}
+.card img{width:100%;height:140px;object-fit:cover}
+.card-body{padding:14px}
 
-    body {
-      min-height: 100vh;
-      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
-      color: #fff;
-      padding: 20px;
-      overflow-x: hidden;
-    }
+.buy{
+ width:100%;
+ padding:11px;
+ border:none;
+ border-radius:12px;
+ background:var(--accent);
+ font-weight:600;
+ cursor:pointer;
+}
+.buy:active{transform:scale(.96)}
 
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-      animation: fadeDown .6s ease;
-    }
+.nav{
+ position:fixed;
+ bottom:0;
+ left:0;
+ right:0;
+ background:#020617;
+ display:flex;
+ justify-content:space-around;
+ padding:12px 0;
+}
+.nav button{
+ background:none;border:none;color:#94a3b8;font-weight:600;
+}
+.nav .active{color:var(--accent)}
 
-    header img {
-      width: 90px;
-      margin-bottom: 10px;
-    }
+.cart-item{
+ background:rgba(255,255,255,.07);
+ border-radius:14px;
+ padding:12px;
+ margin-bottom:10px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
 
-    header h1 {
-      font-size: 32px;
-      letter-spacing: 1px;
-    }
-
-    .catalog {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 20px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.07);
-      border-radius: 18px;
-      overflow: hidden;
-      backdrop-filter: blur(14px);
-      transition: transform .25s ease, box-shadow .25s ease;
-      animation: fadeUp .5s ease forwards;
-      opacity: 0;
-    }
-
-    .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-    }
-
-    .card img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-    }
-
-    .card-body {
-      padding: 14px;
-    }
-
-    .card-body h3 {
-      font-size: 15px;
-      margin-bottom: 6px;
-    }
-
-    .price {
-      font-size: 14px;
-      opacity: 0.75;
-      margin-bottom: 12px;
-    }
-
-    .buy {
-      width: 100%;
-      border: none;
-      border-radius: 12px;
-      padding: 11px;
-      background: var(--accent);
-      color: #020617;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-    .buy:active {
-      transform: scale(.96);
-    }
-
-    /* === АНИМАЦИИ === */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+.hero{
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.7);
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ z-index:10;
+}
+.hero-card{
+ width:90%;
+ max-width:360px;
+ background:#020617;
+ border-radius:20px;
+ overflow:hidden;
+ animation:zoom .3s ease;
+}
+@keyframes zoom{from{transform:scale(.9)}to{transform:scale(1)}}
+select{
+ background:#020617;
+ color:#fff;
+ border-radius:8px;
+ padding:6px;
+}
+</style>
 </head>
 <body>
 
-<header>
-  <img src="images/logo.png" alt="NovaShop">
-  <h1>NovaShop</h1>
-</header>
-
+<!-- ===== ЭКРАНЫ ===== -->
+<div class="screen active" id="shop">
+<header><h1>NovaShop</h1></header>
 <div class="catalog" id="catalog"></div>
+</div>
+
+<div class="screen" id="cart">
+<header><h1>Корзина</h1></header>
+<div id="cartList"></div>
+<h3 id="total"></h3>
+<button class="buy" onclick="pay()">Оплатить</button>
+</div>
+
+<div class="screen" id="profile">
+<header><h1>Профиль</h1></header>
+<p id="user"></p>
+<div id="orders"></div>
+</div>
+
+<div class="screen" id="admin">
+<header><h1>Админ-панель</h1></header>
+<div id="adminOrders"></div>
+</div>
+
+<!-- ===== NAV ===== -->
+<div class="nav" id="nav">
+<button class="active" data-s="shop">Магазин</button>
+<button data-s="cart">Корзина</button>
+<button data-s="profile">Профиль</button>
+</div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+const tg=window.Telegram.WebApp;
+tg.expand();
+if(tg.themeParams?.button_color)
+ document.documentElement.style.setProperty("--accent",tg.themeParams.button_color);
 
-  // Telegram theme color
-  if (tg.themeParams?.button_color) {
-    document.documentElement.style.setProperty("--accent", tg.themeParams.button_color);
-  }
+/* === АДМИН === */
+const ADMIN_IDS=[123456789]; // ← ЗАМЕНИ НА СВОЙ TG ID
+const isAdmin=ADMIN_IDS.includes(tg.initDataUnsafe?.user?.id);
 
-  const products = [
-    { id: 1, name: "PS Plus Essential", price: 499, image: "images/ps-essential.png" },
-    { id: 2, name: "PS Plus Extra", price: 799, image: "images/ps-extra.png" },
-    { id: 3, name: "PS Plus Deluxe", price: 1099, image: "images/ps-deluxe.png" },
-    { id: 4, name: "Steam Wallet 1000 ₽", price: 1000, image: "images/steam-1000.png" },
-    { id: 5, name: "Steam Wallet 3000 ₽", price: 3000, image: "images/steam-3000.png" },
-    { id: 6, name: "Xbox Game Pass", price: 899, image: "images/xbox-pass.png" },
-  ];
+/* === ДАННЫЕ === */
+const products=[
+{id:1,name:"PS Plus Essential",price:499,img:"images/ps-essential.png"},
+{id:2,name:"PS Plus Extra",price:799,img:"images/ps-extra.png"},
+{id:3,name:"PS Plus Deluxe",price:1099,img:"images/ps-deluxe.png"},
+{id:4,name:"Steam 1000 ₽",price:1000,img:"images/steam-1000.png"},
+{id:5,name:"Steam 3000 ₽",price:3000,img:"images/steam-3000.png"},
+{id:6,name:"Xbox Game Pass",price:899,img:"images/xbox-pass.png"}
+];
 
-  const catalog = document.getElementById("catalog");
+let cart=JSON.parse(localStorage.getItem("cart")||"[]");
+let orders=JSON.parse(localStorage.getItem("orders")||"[]");
+let current="shop";
 
-  products.forEach((p, i) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.animationDelay = `${i * 0.06}s`;
+/* === КАТАЛОГ === */
+const catalog=document.getElementById("catalog");
+products.forEach(p=>{
+ const c=document.createElement("div");
+ c.className="card";
+ c.innerHTML=`
+ <img src="${p.img}">
+ <div class="card-body">
+ <h3>${p.name}</h3>
+ <div>${p.price} ₽</div>
+ <button class="buy">Купить</button>
+ </div>`;
+ c.onclick=()=>hero(p);
+ c.querySelector("button").onclick=e=>{
+  e.stopPropagation();
+  addToCart(p);
+ };
+ catalog.appendChild(c);
+});
 
-    card.innerHTML = `
-      <img src="${p.image}">
-      <div class="card-body">
-        <h3>${p.name}</h3>
-        <div class="price">${p.price} ₽</div>
-        <button class="buy">Купить</button>
-      </div>
-    `;
+/* === HERO === */
+function hero(p){
+ const h=document.createElement("div");
+ h.className="hero";
+ h.innerHTML=`
+ <div class="hero-card">
+ <img src="${p.img}" style="width:100%">
+ <div style="padding:14px">
+ <h3>${p.name}</h3>
+ <p>${p.price} ₽</p>
+ <button class="buy">В корзину</button>
+ </div></div>`;
+ h.onclick=()=>h.remove();
+ h.querySelector("button").onclick=e=>{
+  e.stopPropagation();
+  addToCart(p);
+  h.remove();
+ };
+ document.body.appendChild(h);
+}
 
-    card.querySelector(".buy").onclick = () => {
-      tg.HapticFeedback?.impactOccurred("medium");
-      tg.sendData(JSON.stringify({
-        action: "buy",
-        product: p
-      }));
-      tg.showAlert("Заявка отправлена ✅");
-    };
+function addToCart(p){
+ cart.push(p);
+ localStorage.setItem("cart",JSON.stringify(cart));
+ tg.HapticFeedback?.impactOccurred("medium");
+}
 
-    catalog.appendChild(card);
-  });
+/* === КОРЗИНА === */
+function renderCart(){
+ const l=document.getElementById("cartList");
+ l.innerHTML="";
+ let sum=0;
+ cart.forEach(p=>{
+  sum+=p.price;
+  l.innerHTML+=`<div class="cart-item"><span>${p.name}</span><b>${p.price} ₽</b></div>`;
+ });
+ document.getElementById("total").innerText="Итого: "+sum+" ₽";
+}
+
+/* === ОПЛАТА === */
+function pay(){
+ if(!cart.length)return;
+ const order={
+  id:Date.now(),
+  date:new Date().toLocaleString(),
+  items:cart,
+  total:cart.reduce((s,p)=>s+p.price,0),
+  status:"paid"
+ };
+ orders.push(order);
+ localStorage.setItem("orders",JSON.stringify(orders));
+ tg.sendData(JSON.stringify({action:"order_created",order}));
+ cart=[];localStorage.setItem("cart","[]");
+ renderCart();renderOrders();renderAdminOrders();
+ tg.showAlert("Заказ принят ✅");
+}
+
+/* === ПРОФИЛЬ === */
+document.getElementById("user").innerText=
+ tg.initDataUnsafe?.user?.username?"@"+tg.initDataUnsafe.user.username:"Гость";
+
+function renderOrders(){
+ const o=document.getElementById("orders");
+ o.innerHTML="";
+ orders.slice().reverse().forEach(or=>{
+  o.innerHTML+=`
+  <div class="cart-item">
+   <div>
+    <b>#${or.id}</b><br>
+    <small>${or.date}</small>
+   </div>
+   <div style="text-align:right">
+    <div>${or.total} ₽</div>
+    <small>${label(or.status)}</small>
+   </div>
+  </div>`;
+ });
+}
+
+function label(s){
+ return {new:"🕒 Новый",paid:"💳 Оплачен",delivered:"✅ Доставлен",cancelled:"❌ Отменён"}[s];
+}
+
+/* === АДМИН === */
+if(isAdmin){
+ document.getElementById("nav").innerHTML+=`<button data-s="admin">Админ</button>`;
+}
+
+function renderAdminOrders(){
+ if(!isAdmin)return;
+ const el=document.getElementById("adminOrders");
+ el.innerHTML="";
+ orders.slice().reverse().forEach(or=>{
+  el.innerHTML+=`
+  <div class="cart-item">
+   <div>
+    <b>#${or.id}</b><br>
+    <small>${or.total} ₽</small>
+   </div>
+   <select onchange="updateStatus(${or.id},this.value)">
+    <option value="new" ${or.status==="new"?"selected":""}>Новый</option>
+    <option value="paid" ${or.status==="paid"?"selected":""}>Оплачен</option>
+    <option value="delivered" ${or.status==="delivered"?"selected":""}>Доставлен</option>
+    <option value="cancelled" ${or.status==="cancelled"?"selected":""}>Отменён</option>
+   </select>
+  </div>`;
+ });
+}
+
+function updateStatus(id,status){
+ const o=orders.find(x=>x.id===id);
+ if(!o)return;
+ o.status=status;
+ localStorage.setItem("orders",JSON.stringify(orders));
+ renderOrders();renderAdminOrders();
+}
+
+/* === НАВИГАЦИЯ + SWIPE === */
+document.querySelectorAll(".nav button").forEach(b=>{
+ b.onclick=()=>switchScreen(b.dataset.s,b);
+});
+
+function switchScreen(id,btn){
+ document.getElementById(current).classList.remove("active");
+ document.getElementById(id).classList.add("active");
+ current=id;
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+ btn?.classList.add("active");
+ if(id==="cart")renderCart();
+ if(id==="profile")renderOrders();
+ if(id==="admin")renderAdminOrders();
+}
+
+let sx=0;
+document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
+document.addEventListener("touchend",e=>{
+ let dx=e.changedTouches[0].clientX-sx;
+ if(Math.abs(dx)<80)return;
+ const order=["shop","cart","profile"].concat(isAdmin?["admin"]:[]);
+ let i=order.indexOf(current);
+ if(dx<0&&i<order.length-1)switchScreen(order[i+1]);
+ if(dx>0&&i>0)switchScreen(order[i-1]);
+});
 </script>
-
 </body>
 </html>
